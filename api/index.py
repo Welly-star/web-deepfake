@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import urllib.parse
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -9,25 +8,25 @@ if root_dir not in sys.path:
 
 from app import app
 
+# Simpan original wsgi_app Flask agar tidak ada rekursi
+original_wsgi_app = app.wsgi_app
+
 def vercel_handler(environ, start_response):
-    # Debug inspect: jika URL ada ?debug=1
     query = environ.get('QUERY_STRING', '')
-    if 'debug=1' in query:
-        debug_info = {
-            'PATH_INFO': environ.get('PATH_INFO'),
-            'REQUEST_URI': environ.get('REQUEST_URI'),
-            'RAW_URI': environ.get('RAW_URI'),
-            'QUERY_STRING': query,
-            'HTTP_X_MATCHED_PATH': environ.get('HTTP_X_MATCHED_PATH'),
-            'HTTP_X_FORWARDED_URI': environ.get('HTTP_X_FORWARDED_URI'),
-            'headers': {k: v for k, v in environ.items() if k.startswith('HTTP_')}
-        }
-        data = json.dumps(debug_info, indent=2).encode('utf-8')
-        start_response('200 OK', [('Content-Type', 'application/json')])
-        return [data]
+    
+    # Ambil path asli dari parameter __path__ yang dikirim oleh vercel.json
+    if '__path__=' in query:
+        params = urllib.parse.parse_qs(query, keep_blank_values=True)
+        if '__path__' in params and params['__path__']:
+            target_path = params['__path__'][0]
+            if not target_path.startswith('/'):
+                target_path = '/' + target_path
+            environ['PATH_INFO'] = target_path
+            # Hapus __path__ agar request.args tetap bersih
+            del params['__path__']
+            environ['QUERY_STRING'] = urllib.parse.urlencode(params, doseq=True)
 
-    return app(environ, start_response)
+    environ['SCRIPT_NAME'] = ''
+    return original_wsgi_app(environ, start_response)
 
-# Vercel entrypoint
-app_handler = vercel_handler
 app.wsgi_app = vercel_handler

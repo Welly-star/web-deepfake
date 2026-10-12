@@ -76,38 +76,9 @@ def serve_uploaded_file(filename):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/debug')
-@app.route('/api/debug')
-@app.route('/api/index.py/debug')
-def debug_route():
-    import urllib.parse
-    return jsonify({
-        'environ_PATH_INFO': request.environ.get('PATH_INFO'),
-        'environ_QUERY_STRING': request.environ.get('QUERY_STRING'),
-        'environ_HTTP_X_MATCHED_PATH': request.environ.get('HTTP_X_MATCHED_PATH'),
-        'request_path': request.path,
-        'request_args': dict(request.args),
-        'headers': {k: v for k, v in request.headers.items() if not k.lower().startswith('cookie')}
-    })
-
 @app.route('/')
-@app.route('/api')
-@app.route('/api/')
-@app.route('/api/index.py')
-@app.route('/api/index.py/')
 def index():
     """Halaman Beranda dengan statistik live."""
-    if request.args.get('show_path') == '1':
-        return jsonify({
-            'path': request.path,
-            'full_path': request.full_path,
-            'url': request.url,
-            'environ_PATH_INFO': request.environ.get('PATH_INFO'),
-            'environ_RAW_URI': request.environ.get('RAW_URI'),
-            'environ_REQUEST_URI': request.environ.get('REQUEST_URI'),
-            'environ_HTTP_X_MATCHED_PATH': request.environ.get('HTTP_X_MATCHED_PATH'),
-            'args': dict(request.args)
-        })
     total_scans = 0
     total_fakes = 0
     try:
