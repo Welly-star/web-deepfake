@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-4rem)] bg-[#070b14] relative overflow-hidden py-12 flex flex-col items-center justify-center">
+    
+    <!-- Cyber Background Glow -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-indigo-900/20 blur-[130px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-900/15 blur-[100px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-20"></div>
+    </div>
+
+    <div class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-medium mb-3">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                RESNET-50 NEURAL FORENSIC ENGINE
+            </div>
+            <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight">Deteksi & Analisis Keaslian Citra</h2>
+            <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-xl mx-auto">
+                Unggah atau potret citra wajah untuk memindai jejak manipulasi digital, sintetis GAN, dan deepfake secara instan.
+            </p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-2xl flex items-center space-x-3 shadow-lg border {% if category == 'error' %}bg-rose-950/40 text-rose-300 border-rose-800/60{% else %}bg-emerald-950/40 text-emerald-300 border-emerald-800/60{% endif %}">
+                        <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span class="text-sm font-medium">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Forensic Upload Card -->
+        <div class="bg-slate-900/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-800 p-6 sm:p-10 relative overflow-hidden">
+            
+            <!-- Method Selector (File Upload vs Webcam) -->
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <button type="button" id="tab-file" onclick="switchInputMode('file')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-indigo-600 text-white shadow-lg flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Unggah File Foto
+                </button>
+                <button type="button" id="tab-webcam" onclick="switchInputMode('webcam')" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-slate-800 text-slate-400 hover:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Gunakan Kamera (Selfie)
+                </button>
+            </div>
+
+            <form action="{{ url_for('detect') }}" method="POST" enctype="multipart/form-data" id="upload-form">
+                
+                <!-- FILE INPUT CONTAINER -->
+                <div id="file-container">
+                    <input id="file-upload" name="file" type="file" class="sr-only" accept=".jpg,.jpeg,.png,.webp">
+                    
+                    <div id="drop-zone" class="flex flex-col items-center justify-center w-full h-80 border-2 border-slate-700/80 border-dashed rounded-2xl bg-slate-950/60 hover:bg-slate-950/90 hover:border-indigo-500 transition-all duration-300 cursor-pointer overflow-hidden relative group">
+                        
+                        <!-- Initial Prompt State -->
+                        <div id="upload-prompt" class="flex flex-col items-center justify-center pt-5 pb-6 text-center z-10 px-4">
+                            <div class="w-20 h-20 mb-4 rounded-2xl bg-gradient-to-tr from-indigo-600/20 to-cyan-500/20 border border-indigo-500/30 flex items-center justify-center group-hover:scale-110 group-hover:border-indigo-400 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.2)]">
+                                <svg class="w-10 h-10 text-indigo-400 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            </div>
+                            <p class="mb-2 text-base sm:text-lg text-slate-200 font-medium">
+                                <span class="text-indigo-400 font-bold group-hover:underline">Klik untuk memilih file</span> atau seret citra ke sini
+                            </p>
+                            <p class="text-xs text-slate-500">Mendukung format JPG, PNG, WEBP (Resolusi otomatis di-crop 224x224)</p>
+                            
+                            <div class="mt-6 flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span>Pemeriksaan Artefak Otomatis Aktif</span>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview State with Biometric Scanning Laser -->
+                        <div id="image-preview" class="hidden absolute inset-0 w-full h-full bg-slate-950 flex flex-col">
+                            <div class="relative w-full h-full flex items-center justify-center p-4">
+                                <img id="preview-img" src="" alt="Preview" class="max-h-full max-w-full rounded-xl shadow-2xl object-contain z-10">
+                                <img id="preview-blur" src="" class="absolute inset-0 w-full h-full object-cover opacity-20 filter blur-2xl scale-125" alt="">
+                                
+                                <!-- Laser Line Animation -->
+                                <div class="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                                    <div class="w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-[scan_2.5s_infinite]"></div>
+                                </div>
+
+                                <!-- Overlay Reticle HUD -->
+                                <div class="absolute inset-8 border border-cyan-500/30 rounded-xl pointer-events-none z-20 flex items-center justify-center">
+                                    <span class="text-[10px] font-mono text-cyan-400 bg-slate-950/80 px-2 py-0.5 rounded border border-cyan-500/30 self-start mt-2">
+                                        TARGET ACQUIRED • PRE-PROCESS READY
+                                    </span>
+                                </div>
+                                
+                                <!-- Change Image Button Overlay -->
+                                <div class="absolute inset-0 bg-slate-950/60 opacity-0 hover:opacity-100 transition-opacity duration-300 z-30 flex items-center justify-center backdrop-blur-xs">
+                                    <div class="bg-indigo-600/90 px-6 py-2.5 rounded-full text-white text-sm font-semibold flex items-center shadow-xl">
+                                        Ganti Foto
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- WEBCAM CONTAINER (Hidden by default) -->
+                <div id="webcam-container" class="hidden">
+                    <div class="flex flex-col items-center justify-center w-full h-80 rounded-2xl bg-slate-950 relative overflow-hidden border-2 border-slate-700">
+                        <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <canvas id="webcam-canvas" class="hidden"></canvas>
+                        
+                        <div class="absolute bottom-4 flex gap-3 z-10">
+                            <button type="button" onclick="capturePhoto()" class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(6,182,212,0.6)] flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                Ambil Foto Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Details Tag -->
+                <div id="file-details" class="hidden mt-4 bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center flex-shrink-0 border border-indigo-500/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p id="file-name" class="text-sm font-semibold text-slate-200 truncate">citra.jpg</p>
+                            <p class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                                <span id="file-size" class="font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300">0 MB</span>
+                                <span id="file-dim" class="font-mono">Resolusi</span>
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" id="remove-btn" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Submit Action Button -->
+                <div id="action-area" class="mt-6 hidden">
+                    <button type="submit" id="submit-btn" class="w-full relative group overflow-hidden py-4 px-6 rounded-2xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.4)] transition-all">
+                        <span class="flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            Jalankan Diagnosa Forensik ResNet-50
+                        </span>
+                    </button>
+                </div>
+
+            </form>
+            
+            <!-- Terminal Scanning Simulation HUD (Active on Submit) -->
+            <div id="analysis-process" class="hidden mt-4">
+                <div class="bg-slate-950 rounded-2xl p-6 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-white font-bold flex items-center gap-2 text-sm sm:text-base">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                            Memindai Artefak Piksel & Jaringan Neural...
+                        </h3>
+                        <span id="progress-percentage" class="text-cyan-400 font-mono font-bold text-sm">0%</span>
+                    </div>
+                    
+                    <div class="w-full bg-slate-900 rounded-full h-2 mb-4 overflow-hidden border border-slate-800">
+                        <div id="progress-bar" class="h-2 rounded-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 shadow-[0_0_15px_#22d3ee]" style="width: 0%; transition: width 0.15s linear;"></div>
+                    </div>
+                    
+                    <div class="bg-black/80 rounded-xl p-3 font-mono text-xs text-emerald-400 border border-slate-800/80 h-28 overflow-hidden relative">
+                        <div id="terminal-logs" class="flex flex-col space-y-1 absolute bottom-3 w-full">
+                            <div class="text-slate-500">> Menginisialisasi modul ResNet-50...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    @keyframes scan {
+        0% { transform: translateY(0); opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { transform: translateY(320px); opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-upload');
+    const uploadPrompt = document.getElementById('upload-prompt');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    const previewBlur = document.getElementById('preview-blur');
+    const fileDetails = document.getElementById('file-details');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileDim = document.getElementById('file-dim');
+    const removeBtn = document.getElementById('remove-btn');
+    const actionArea = document.getElementById('action-area');
+    const form = document.getElementById('upload-form');
+    
+    const analysisProcess = document.getElementById('analysis-process');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const terminalLogs = document.getElementById('terminal-logs');
+
+    let webcamStream = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
+        dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eName => {
+        dropZone.addEventListener(eName, () => dropZone.classList.add('border-cyan-400', 'bg-slate-950'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eName => {
+        dropZone.addEventListener(eName, () => dropZone.classList.remove('border-cyan-400'), false);
+    });
+
+    dropZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFiles(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            handleFiles(this.files[0]);
+        }
+    });
+
+    function handleFiles(file) {
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`File terlalu besar (${sizeInMB}MB). Maksimal 10MB.`);
+            return;
+        }
+
+        fileName.textContent = file.name;
+        fileSize.textContent = `${sizeInMB} MB`;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgSrc = e.target.result;
+            previewImg.src = imgSrc;
+            previewBlur.src = imgSrc;
+            
+            const img = new Image();
+            img.onload = function() {
+                fileDim.textContent = `${this.width} x ${this.height} px`;
+            };
+            img.src = imgSrc;
+
+            uploadPrompt.classList.add('hidden');
+            imagePreview.classList.remove('hidden');
+            fileDetails.classList.remove('hidden');
+            actionArea.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+    }
+
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        previewImg.src = '';
+        uploadPrompt.classList.remove('hidden');
+        imagePreview.classList.add('hidden');
+        fileDetails.classList.add('hidden');
+        actionArea.classList.add('hidden');
+    });
+
+    // Switch between File and Webcam
+    function switchInputMode(mode) {
+        const fileCont = document.getElementById('file-container');
+        const webcamCont = document.getElementById('webcam-container');
+        const tabFile = document.getElementById('tab-file');
+        const tabWebcam = document.getElementById('tab-webcam');
+        const video = document.getElementById('webcam-video');
+
+        if (mode === 'webcam') {
+            fileCont.classList.add('hidden');
+            webcamCont.classList.remove('hidden');
+            tabWebcam.classList.add('bg-indigo-600', 'text-white');
+            tabWebcam.classList.remove('bg-slate-800', 'text-slate-400');
+            tabFile.classList.remove('bg-indigo-600', 'text-white');
+            tabFile.classList.add('bg-slate-800', 'text-slate-400');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcamStream = stream;
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    alert('Tidak dapat mengakses kamera: ' + err.message);
+                    switchInputMode('file');
+                });
+        } else {
+            fileCont.classList.remove('hidden');
+            webcamCont.classList.add('hidden');
+            tabFile.classList.add('bg-indigo-600', 'text-white');
+            tabFile.classList.remove('bg-slate-800', 'text-slate-400');
+            tabWebcam.classList.remove('bg-indigo-600', 'text-white');
+            tabWebcam.classList.add('bg-slate-800', 'text-slate-400');
+
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+            }
+        }
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('webcam-video');
+        const canvas = document.getElementById('webcam-canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], "selfie_capture.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            switchInputMode('file');
+            handleFiles(file);
+        }, 'image/jpeg', 0.95);
+    }
+
+    function addLog(msg, isHighlight = false) {
+        const div = document.createElement('div');
+        div.className = isHighlight ? 'text-cyan-300 font-bold' : 'text-emerald-400';
+        div.textContent = `> ${msg}`;
+        terminalLogs.appendChild(div);
+        if (terminalLogs.children.length > 5) terminalLogs.removeChild(terminalLogs.firstElementChild);
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('file-container').classList.add('hidden');
+        fileDetails.classList.add('hidden');
+        actionArea.classList.add('hidden');
+        analysisProcess.classList.remove('hidden');
+        
+        let p = 0;
+        const steps = [
+            { pct: 15, msg: "Memotong area fokus wajah 224x224 (Face Alignment)..." },
+            { pct: 35, msg: "Menjalankan ekstraksi residual feature ResNet-50..." },
+            { pct: 55, msg: "Memeriksa artefak batas blending (Edge Inconsistency)..." },
+            { pct: 75, msg: "Analisis domain frekuensi tinggi (High-Pass FFT)...", highlight: true },
+            { pct: 90, msg: "Menghitung confidence score Softmax & kalibrasi..." },
+            { pct: 100, msg: "Diagnosa selesai! Membuka laporan forensik...", highlight: true }
+        ];
+        let stepIdx = 0;
+
+        const timer = setInterval(() => {
+            p += 2;
+            if (stepIdx < steps.length && p >= steps[stepIdx].pct) {
+                addLog(steps[stepIdx].msg, steps[stepIdx].highlight);
+                stepIdx++;
+            }
+            if (p >= 100) {
+                p = 100;
+                clearInterval(timer);
+                setTimeout(() => form.submit(), 400);
+            }
+            progressBar.style.width = `${p}%`;
+            progressPercentage.textContent = `${p}%`;
+        }, 35);
+    });
+</script>
+{% endblock %}

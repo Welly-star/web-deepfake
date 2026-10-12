@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Decorative Dark Ambient Background -->
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#070b14]">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] {% if record['result'] == 'DEEPFAKE' %}bg-rose-950/40{% else %}bg-emerald-950/40{% endif %} rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-950/30 rounded-full blur-[120px]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 print:p-0">
+    
+    <!-- Header Title with Status Badge -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-800/80">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wide mb-3 {% if record['result'] == 'DEEPFAKE' %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% else %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% endif %}">
+                <span class="w-2 h-2 rounded-full {% if record['result'] == 'DEEPFAKE' %}bg-rose-500 animate-ping{% else %}bg-emerald-400 animate-pulse{% endif %}"></span>
+                FORENSIC REPORT #{{ record['id'] }} • RESNET-50 ANATOMICAL DIAGNOSIS
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
+                Hasil Investigasi Forensik Citra
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Dianalisis menggunakan ekstraksi residual ResNet-50 & pemetaan anomali bagian wajah • {{ record['timestamp'] }}</p>
+        </div>
+
+        <!-- Print & Export Buttons -->
+        <div class="flex items-center gap-3 print:hidden">
+            <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 shadow-lg hover:text-white transition-all">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Cetak Laporan PDF
+            </button>
+            <a href="{{ url_for('detect') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Uji Foto Lain
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT: Interactive Forensics Image Viewer (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5 sticky top-24">
+            
+            <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-4 shadow-2xl relative">
+                
+                <!-- Viewer Mode Tabs (GRAD-CAM Dihapus, Tampilan Super Bersih) -->
+                <div class="flex items-center justify-between mb-3 px-2 flex-wrap gap-2">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full {% if record['result'] == 'DEEPFAKE' %}bg-rose-500 animate-ping{% else %}bg-emerald-400 animate-pulse{% endif %}"></span>
+                        VIEWER FOTO
+                    </span>
+                    <div class="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+                        {% if record['result'] == 'DEEPFAKE' %}
+                        <button onclick="setViewerMode('redmarks')" id="btn-redmarks" class="px-3 py-1.5 rounded-lg font-bold transition-all bg-rose-600 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)]">Tanda Merah AI</button>
+                        <button onclick="setViewerMode('normal')" id="btn-normal" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all">Citra Polos</button>
+                        {% else %}
+                        <span class="px-3 py-1 text-emerald-400 font-mono text-xs font-semibold flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            Citra Alami (Tanpa Manipulasi)
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Display Box -->
+                <div class="relative rounded-2xl overflow-hidden bg-slate-950 aspect-square flex items-center justify-center group border {% if record['result'] == 'DEEPFAKE' %}border-rose-500/50 shadow-[0_0_25px_rgba(244,63,94,0.15)]{% else %}border-slate-800/80{% endif %}">
+                    
+                    <!-- Original Image -->
+                    <img id="main-img" src="{{ url_for('static', filename='uploads/' + record['filename']) }}" alt="Analisis Forensik" class="w-full h-full object-cover select-none">
+                    
+                    {% if record['result'] == 'DEEPFAKE' %}
+                    <!-- ============================================================== -->
+                    <!-- TANDA MERAH BAGIAN APA YANG DI-EDIT AI (HANYA UNTUK DEEPFAKE) -->
+                    <!-- ============================================================== -->
+                    <div id="overlay-redmarks" class="absolute inset-0 pointer-events-none z-20">
+                        
+                        <!-- 1. Tanda Merah di Area Mata -->
+                        <div class="absolute top-[28%] left-[22%] right-[22%] h-[16%] border-2 border-rose-500 bg-rose-500/15 rounded-lg shadow-[0_0_12px_rgba(244,63,94,0.6)] flex items-start justify-between p-1">
+                            <span class="bg-rose-600 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow">
+                                Tanda Merah: Mata Diedit AI
+                            </span>
+                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                        </div>
+
+                        <!-- 2. Tanda Merah di Area Mulut -->
+                        <div class="absolute top-[58%] left-[28%] right-[28%] h-[14%] border-2 border-rose-500 bg-rose-500/15 rounded-lg shadow-[0_0_12px_rgba(244,63,94,0.6)] flex items-end justify-between p-1">
+                            <span class="bg-rose-600 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow">
+                                Tanda Merah: Mulut Diedit AI
+                            </span>
+                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                        </div>
+
+                        <!-- 3. Tanda Merah di Batas Rahang / Face Swap -->
+                        <div class="absolute bottom-[10%] left-[18%] right-[18%] h-[18%] border-b-2 border-dashed border-rose-500 rounded-b-2xl shadow-[0_4px_12px_rgba(244,63,94,0.7)] flex items-end justify-center pb-1">
+                            <span class="bg-rose-950/90 border border-rose-500 text-rose-300 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full shadow">
+                                Tanda Merah: Batas Rahang Diedit AI
+                            </span>
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                    <!-- Watermark -->
+                    <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-800 text-[11px] font-mono text-slate-300">
+                        ResNet-50 • 224x224 Scan
+                    </div>
+                </div>
+
+                <!-- Forensic Image Caption -->
+                <div class="mt-3 px-2 flex justify-between items-center text-xs text-slate-400 font-mono">
+                    <span class="truncate max-w-[200px]">{{ record['filename'] }}</span>
+                    <span>Status: <strong class="{% if record['result'] == 'DEEPFAKE' %}text-rose-400{% else %}text-emerald-400{% endif %}">{{ record['result'] }}</strong></span>
+                </div>
+            </div>
+
+            <!-- Primary Executive Summary Card -->
+            <div class="p-5 rounded-2xl border {% if record['result'] == 'DEEPFAKE' %}bg-rose-950/20 border-rose-900/40{% else %}bg-emerald-950/20 border-emerald-900/40{% endif %}">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 {% if record['result'] == 'DEEPFAKE' %}bg-rose-500/20 text-rose-400{% else %}bg-emerald-500/20 text-emerald-400{% endif %}">
+                        {% if record['result'] == 'DEEPFAKE' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        {% else %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Kesimpulan Rekayasa Digital</h4>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            {{ manipulation_summary }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Detailed Anatomical Breakdown & Probabilities (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Verdict Main Banner Card -->
+            <div class="rounded-3xl p-6 sm:p-8 border shadow-2xl relative overflow-hidden {% if record['result'] == 'DEEPFAKE' %}bg-gradient-to-br from-rose-950/80 via-slate-900 to-slate-900 border-rose-500/30{% else %}bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-900 border-emerald-500/30{% endif %}">
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div>
+                        <span class="text-xs font-mono font-semibold uppercase tracking-wider {% if record['result'] == 'DEEPFAKE' %}text-rose-400{% else %}text-emerald-400{% endif %}">
+                            Klasifikasi Utama ResNet-50
+                        </span>
+                        <div class="text-4xl sm:text-5xl font-black text-white mt-1 tracking-tight flex items-center gap-3">
+                            {{ record['result'] }}
+                            {% if record['result'] == 'DEEPFAKE' %}
+                            <span class="text-xs font-bold font-mono px-3 py-1 rounded-full bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]">TERINDIKASI</span>
+                            {% else %}
+                            <span class="text-xs font-bold font-mono px-3 py-1 rounded-full bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.6)]">AUTENTIK</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-2 max-w-md">
+                            Tingkat keyakinan model sebesar <strong class="text-white font-mono">{{ record['confidence'] }}%</strong> setelah melalui pra-pemrosesan 224x224 & lapisan residual neural network.
+                        </p>
+                    </div>
+
+                    <!-- Circular Progress Gauge -->
+                    <div class="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 min-w-[130px]">
+                        <span class="text-[11px] font-mono text-slate-400">CONFIDENCE</span>
+                        <span class="text-3xl font-black font-mono {% if record['result'] == 'DEEPFAKE' %}text-rose-400{% else %}text-emerald-400{% endif %}">{{ record['confidence'] }}%</span>
+                        <span class="text-[10px] text-slate-500 mt-1">Margin: &plusmn;0.8%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Dual Probability Progress Bars -->
+            <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl">
+                <h3 class="text-base font-bold text-white mb-5 flex items-center justify-between">
+                    <span>Distribusi Probabilitas Model</span>
+                    <span class="text-xs font-mono text-slate-400 font-normal">Binary Softmax Output</span>
+                </h3>
+
+                <div class="space-y-5">
+                    <!-- Deepfake Bar -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]"></span>
+                                Probabilitas Deepfake (Manipulasi AI)
+                            </span>
+                            <span class="text-lg font-mono font-black {% if fake_prob > 50 %}text-rose-400{% else %}text-slate-500{% endif %}">{{ fake_prob }}%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.7)] transition-all duration-1000 ease-out" style="width: {{ fake_prob }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Real Bar -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]"></span>
+                                Probabilitas Real (Foto Asli)
+                            </span>
+                            <span class="text-lg font-mono font-black {% if real_prob > 50 %}text-emerald-400{% else %}text-slate-500{% endif %}">{{ real_prob }}%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.7)] transition-all duration-1000 ease-out" style="width: {{ real_prob }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAILED ANATOMICAL REGION ANALYSIS (YANG DI-EDIT OLEH AI) -->
+            <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Penjelasan Bagian yang Dimanipulasi AI
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Diagnosis mendalam pada setiap struktur anatomis wajah</p>
+                    </div>
+                    <span class="text-xs font-mono px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold">
+                        ANATOMICAL FORENSICS
+                    </span>
+                </div>
+
+                <!-- Region Cards List -->
+                <div class="space-y-4">
+                    {% for region in regions %}
+                    <div class="p-5 rounded-2xl border transition-all duration-200 {% if region['is_edited'] %}bg-rose-950/20 border-rose-500/30 hover:border-rose-500/50{% else %}bg-slate-950/60 border-slate-800/80 hover:border-slate-700{% endif %}">
+                        
+                        <!-- Card Header -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono {% if region['is_edited'] %}bg-rose-500/20 text-rose-400 border border-rose-500/30{% else %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30{% endif %}">
+                                    {{ loop.index }}
+                                </span>
+                                <h4 class="text-sm font-bold text-white">{{ region['name'] }}</h4>
+                            </div>
+
+                            <!-- Badge Status -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full {% if region['is_edited'] %}bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.3)]{% else %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/30{% endif %}">
+                                    {{ region['status'] }} ({{ region['score'] }}%)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Technical Explanation Text -->
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed pl-9">
+                            {{ region['explanation'] }}
+                        </p>
+
+                        <!-- Severity Tag if edited -->
+                        {% if region['is_edited'] %}
+                        <div class="mt-3 pl-9 flex items-center gap-2 text-[11px] font-mono text-rose-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            Tingkat Anomali: <strong class="text-white">{{ region['severity'] }}</strong> • Ditemukan inkonsistensi struktur sintetis
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Footer Action Bar -->
+            <div class="flex flex-col sm:flex-row gap-4 print:hidden">
+                <a href="{{ url_for('detect') }}" class="flex-1 py-4 px-6 rounded-2xl text-center font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_25px_rgba(79,70,229,0.35)] transition-all">
+                    Uji Citra Lainnya
+                </a>
+                <a href="{{ url_for('history') }}" class="flex-1 py-4 px-6 rounded-2xl text-center font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700/80 transition-all">
+                    Buka Riwayat Investigasi
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function setViewerMode(mode) {
+        const redmarks = document.getElementById('overlay-redmarks');
+        const btnNormal = document.getElementById('btn-normal');
+        const btnRedmarks = document.getElementById('btn-redmarks');
+
+        if (mode === 'normal') {
+            if (redmarks) redmarks.classList.add('hidden');
+            if (btnNormal) btnNormal.className = 'px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white shadow-md transition-all';
+            if (btnRedmarks) btnRedmarks.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
+        } else if (mode === 'redmarks') {
+            if (redmarks) redmarks.classList.remove('hidden');
+            if (btnRedmarks) btnRedmarks.className = 'px-3 py-1.5 rounded-lg font-bold bg-rose-600 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)] transition-all';
+            if (btnNormal) btnNormal.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
+        }
+    }
+</script>
+{% endblock %}
