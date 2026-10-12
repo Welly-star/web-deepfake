@@ -76,6 +76,10 @@ def serve_uploaded_file(filename):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.errorhandler(404)
+def handle_404(e):
+    return f"404 NOT FOUND: PATH_INFO={request.environ.get('PATH_INFO')} | request.path={request.path} | raw_query={request.environ.get('QUERY_STRING')}", 404
+
 @app.route('/')
 def index():
     """Halaman Beranda dengan statistik live."""
