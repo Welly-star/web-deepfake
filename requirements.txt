@@ -1,6 +1,4 @@
 Flask
 Werkzeug
 Pillow
-# Uncomment below when you have the real model ready
-# tensorflow
-# numpy
+numpy

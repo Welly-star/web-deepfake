@@ -2,42 +2,76 @@ import os
 import sqlite3
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from model import analyze_image_forensics
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 app.secret_key = 'super_secret_key_deepfake_ai_2026'
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+
+# Deteksi apakah sistem penyimpanan bersifat Read-Only (seperti di Vercel / Cloud Serverless)
+try:
+    test_file = os.path.join(BASE_DIR, '.write_test')
+    with open(test_file, 'w') as f:
+        f.write('1')
+    os.remove(test_file)
+    IS_READONLY = False
+except Exception:
+    IS_READONLY = True
+
+if IS_READONLY or 'VERCEL' in os.environ or os.environ.get('VERCEL') == '1':
+    UPLOAD_FOLDER = '/tmp/uploads'
+    DB_NAME = '/tmp/history.db'
+else:
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
+    DB_NAME = os.path.join(BASE_DIR, 'history.db')
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Maksimal ukuran file 10 MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-DB_NAME = 'history.db'
+# Buat folder upload jika belum ada
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except Exception:
+    pass
 
 def init_db():
     """Inisialisasi database SQLite dengan kolom forensik."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT NOT NULL,
-            result TEXT NOT NULL,
-            confidence REAL NOT NULL,
-            details TEXT DEFAULT '{}',
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    # Migrasi otomatis jika tabel lama sudah ada tanpa kolom details
     try:
-        cursor.execute("ALTER TABLE history ADD COLUMN details TEXT DEFAULT '{}'")
-    except Exception:
-        pass
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                filename TEXT NOT NULL,
+                result TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                details TEXT DEFAULT '{}',
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        try:
+            cursor.execute("ALTER TABLE history ADD COLUMN details TEXT DEFAULT '{}'")
+        except Exception:
+            pass
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[DB Init Warning] {e}")
 
 init_db()
+
+@app.route('/static/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    """Menyajikan file upload baik di lokal maupun di Vercel (/tmp/uploads)."""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -45,13 +79,18 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     """Halaman Beranda dengan statistik live."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM history")
-    total_scans = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM history WHERE result='DEEPFAKE'")
-    total_fakes = cursor.fetchone()[0]
-    conn.close()
+    total_scans = 0
+    total_fakes = 0
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM history")
+        total_scans = cursor.fetchone()[0] or 0
+        cursor.execute("SELECT COUNT(*) FROM history WHERE result='DEEPFAKE'")
+        total_fakes = cursor.fetchone()[0] or 0
+        conn.close()
+    except Exception as e:
+        print(f"[Index DB Warning] {e}")
     return render_template('index.html', total_scans=total_scans, total_fakes=total_fakes)
 
 @app.route('/detect', methods=['GET', 'POST'])
@@ -80,16 +119,20 @@ def detect():
             confidence = forensic_data['confidence']
             details_json = json.dumps(forensic_data)
             
-            # Simpan ke Database
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO history (filename, result, confidence, details, timestamp) 
-                VALUES (?, ?, ?, ?, ?)
-            ''', (unique_filename, result, confidence, details_json, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            record_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
+            # Simpan ke Database dengan aman
+            record_id = 1
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO history (filename, result, confidence, details, timestamp) 
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (unique_filename, result, confidence, details_json, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                record_id = cursor.lastrowid
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"[Insert DB Warning] {e}")
             
             return redirect(url_for('result', id=record_id))
         else:
@@ -101,12 +144,16 @@ def detect():
 @app.route('/result/<int:id>')
 def result(id):
     """Halaman Hasil Analisis Forensik Lengkap."""
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM history WHERE id=?", (id,))
-    record = cursor.fetchone()
-    conn.close()
+    record = None
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM history WHERE id=?", (id,))
+        record = cursor.fetchone()
+        conn.close()
+    except Exception as e:
+        print(f"[Result DB Warning] {e}")
     
     if record is None:
         return redirect(url_for('index'))
@@ -161,31 +208,38 @@ def result(id):
 def history():
     """Halaman Riwayat dengan Filter & KPI Dashboard."""
     filter_type = request.args.get('filter', 'all')
+    records = []
+    total_count = 0
+    deepfake_count = 0
+    real_count = 0
+    avg_conf = 0.0
     
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Query Data
-    if filter_type == 'deepfake':
-        cursor.execute("SELECT * FROM history WHERE result='DEEPFAKE' ORDER BY id DESC")
-    elif filter_type == 'real':
-        cursor.execute("SELECT * FROM history WHERE result='REAL' ORDER BY id DESC")
-    else:
-        cursor.execute("SELECT * FROM history ORDER BY id DESC")
-    records = cursor.fetchall()
-    
-    # Hitung Statistik KPI
-    cursor.execute("SELECT COUNT(*), AVG(confidence) FROM history")
-    stats = cursor.fetchone()
-    total_count = stats[0] or 0
-    avg_conf = round(stats[1], 1) if stats[1] else 0.0
-    
-    cursor.execute("SELECT COUNT(*) FROM history WHERE result='DEEPFAKE'")
-    deepfake_count = cursor.fetchone()[0] or 0
-    real_count = total_count - deepfake_count
-    
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Query Data
+        if filter_type == 'deepfake':
+            cursor.execute("SELECT * FROM history WHERE result='DEEPFAKE' ORDER BY id DESC")
+        elif filter_type == 'real':
+            cursor.execute("SELECT * FROM history WHERE result='REAL' ORDER BY id DESC")
+        else:
+            cursor.execute("SELECT * FROM history ORDER BY id DESC")
+        records = cursor.fetchall()
+        
+        # Hitung Statistik KPI
+        cursor.execute("SELECT COUNT(*), AVG(confidence) FROM history")
+        stats = cursor.fetchone()
+        total_count = stats[0] or 0
+        avg_conf = round(stats[1], 1) if stats[1] else 0.0
+        
+        cursor.execute("SELECT COUNT(*) FROM history WHERE result='DEEPFAKE'")
+        deepfake_count = cursor.fetchone()[0] or 0
+        real_count = total_count - deepfake_count
+        conn.close()
+    except Exception as e:
+        print(f"[History DB Warning] {e}")
     
     return render_template(
         'history.html',
@@ -198,4 +252,5 @@ def history():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
