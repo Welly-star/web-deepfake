@@ -97,6 +97,17 @@ def debug_route():
 @app.route('/api/index.py/')
 def index():
     """Halaman Beranda dengan statistik live."""
+    if request.args.get('show_path') == '1':
+        return jsonify({
+            'path': request.path,
+            'full_path': request.full_path,
+            'url': request.url,
+            'environ_PATH_INFO': request.environ.get('PATH_INFO'),
+            'environ_RAW_URI': request.environ.get('RAW_URI'),
+            'environ_REQUEST_URI': request.environ.get('REQUEST_URI'),
+            'environ_HTTP_X_MATCHED_PATH': request.environ.get('HTTP_X_MATCHED_PATH'),
+            'args': dict(request.args)
+        })
     total_scans = 0
     total_fakes = 0
     try:
