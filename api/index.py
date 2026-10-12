@@ -8,5 +8,17 @@ if root_dir not in sys.path:
 
 from app import app
 
-# Vercel serverless function entrypoint
+# WSGI Middleware untuk menormalkan PATH_INFO pada Vercel Serverless
+class VercelPathFix:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
 
+    def __call__(self, environ, start_response):
+        path = environ.get('PATH_INFO', '')
+        if path.startswith('/api/index.py'):
+            environ['PATH_INFO'] = path[len('/api/index.py'):] or '/'
+        elif path.startswith('/api'):
+            environ['PATH_INFO'] = path[len('/api'):] or '/'
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathFix(app.wsgi_app)

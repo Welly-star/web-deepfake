@@ -77,6 +77,10 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
+@app.route('/api')
+@app.route('/api/')
+@app.route('/api/index.py')
+@app.route('/api/index.py/')
 def index():
     """Halaman Beranda dengan statistik live."""
     total_scans = 0
@@ -94,6 +98,8 @@ def index():
     return render_template('index.html', total_scans=total_scans, total_fakes=total_fakes)
 
 @app.route('/detect', methods=['GET', 'POST'])
+@app.route('/api/detect', methods=['GET', 'POST'])
+@app.route('/api/index.py/detect', methods=['GET', 'POST'])
 def detect():
     """Halaman Deteksi dengan Multi-Factor AI Engine."""
     if request.method == 'POST':
@@ -142,6 +148,8 @@ def detect():
     return render_template('detect.html')
 
 @app.route('/result/<int:id>')
+@app.route('/api/result/<int:id>')
+@app.route('/api/index.py/result/<int:id>')
 def result(id):
     """Halaman Hasil Analisis Forensik Lengkap."""
     record = None
@@ -205,6 +213,8 @@ def result(id):
     )
 
 @app.route('/history')
+@app.route('/api/history')
+@app.route('/api/index.py/history')
 def history():
     """Halaman Riwayat dengan Filter & KPI Dashboard."""
     filter_type = request.args.get('filter', 'all')
