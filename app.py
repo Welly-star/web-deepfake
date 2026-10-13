@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import json
+import urllib.parse
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
@@ -14,6 +15,30 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, 'static')
 )
 app.secret_key = 'super_secret_key_deepfake_ai_2026'
+
+# WSGI Middleware untuk Vercel Serverless
+# Mengarahkan rewrite Vercel ke path asli yang dituju pengguna (/detect, /history, dll)
+original_wsgi_app = app.wsgi_app
+
+def vercel_wsgi_middleware(environ, start_response):
+    query = environ.get('QUERY_STRING', '')
+    if '__path__=' in query:
+        params = urllib.parse.parse_qs(query, keep_blank_values=True)
+        if '__path__' in params and params['__path__']:
+            target_path = params['__path__'][0]
+            if not target_path.startswith('/'):
+                target_path = '/' + target_path
+            if target_path.startswith('/api/index.py'):
+                target_path = target_path[len('/api/index.py'):] or '/'
+            elif target_path.startswith('/api'):
+                target_path = target_path[len('/api'):] or '/'
+            environ['PATH_INFO'] = target_path
+            del params['__path__']
+            environ['QUERY_STRING'] = urllib.parse.urlencode(params, doseq=True)
+    environ['SCRIPT_NAME'] = ''
+    return original_wsgi_app(environ, start_response)
+
+app.wsgi_app = vercel_wsgi_middleware
 
 # Deteksi apakah sistem penyimpanan bersifat Read-Only (seperti di Vercel / Cloud Serverless)
 try:
@@ -78,7 +103,7 @@ def allowed_file(filename):
 
 @app.errorhandler(404)
 def handle_404(e):
-    return f"404 NOT FOUND: PATH_INFO={request.environ.get('PATH_INFO')} | request.path={request.path} | raw_query={request.environ.get('QUERY_STRING')}", 404
+    return redirect(url_for('index'))
 
 @app.route('/')
 def index():
@@ -98,8 +123,6 @@ def index():
     return render_template('index.html', total_scans=total_scans, total_fakes=total_fakes)
 
 @app.route('/detect', methods=['GET', 'POST'])
-@app.route('/api/detect', methods=['GET', 'POST'])
-@app.route('/api/index.py/detect', methods=['GET', 'POST'])
 def detect():
     """Halaman Deteksi dengan Multi-Factor AI Engine."""
     if request.method == 'POST':
@@ -148,8 +171,6 @@ def detect():
     return render_template('detect.html')
 
 @app.route('/result/<int:id>')
-@app.route('/api/result/<int:id>')
-@app.route('/api/index.py/result/<int:id>')
 def result(id):
     """Halaman Hasil Analisis Forensik Lengkap."""
     record = None
@@ -213,8 +234,6 @@ def result(id):
     )
 
 @app.route('/history')
-@app.route('/api/history')
-@app.route('/api/index.py/history')
 def history():
     """Halaman Riwayat dengan Filter & KPI Dashboard."""
     filter_type = request.args.get('filter', 'all')
