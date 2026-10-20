@@ -17,11 +17,11 @@
         <!-- Hero Header -->
         <div class="text-center max-w-4xl mx-auto">
             
-            <!-- Neon Pill Badge -->
+            <!-- Neon Pill Badge (Updated: ResNet 50 Transfer Learning) -->
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 backdrop-blur-md mb-8 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
                 <span class="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
                 <span class="text-indigo-200 text-xs sm:text-sm font-mono tracking-wide">
-                    Deep Learning Forensics • ResNet-50 v2 Architecture
+                    Deep Learning Forensics • ResNet 50 Transfer Learning
                 </span>
             </div>
             
@@ -35,7 +35,7 @@
             
             <!-- Subtitle -->
             <p class="text-base sm:text-xl text-slate-300/80 mb-10 leading-relaxed font-normal max-w-2xl mx-auto">
-                Pendeteksi manipulasi wajah berbasis kecerdasan buatan dengan akurasi tinggi. Menganalisis ketidakteraturan spektrum piksel, distorsi batas wajah (*edge blending*), dan anomali biometrik secara mendalam.
+                Pendeteksi manipulasi wajah berbasis kecerdasan buatan dengan arsitektur <strong class="text-cyan-300 font-semibold">ResNet 50 Transfer Learning</strong>. Menganalisis ketidakteraturan spektrum piksel, distorsi batas wajah (*edge blending*), dan anomali biometrik secara mendalam.
             </p>
             
             <!-- CTA Buttons -->
@@ -45,39 +45,44 @@
                     <span>Mulai Pindai Citra Sekarang</span>
                 </a>
                 
-                <a href="{{ url_for('history') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-semibold text-slate-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:text-white transition-all flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span>Arsip Hasil Forensik</span>
+                <a href="#model-info" class="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-semibold text-slate-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:text-white transition-all flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Informasi Model ResNet 50</span>
+                </a>
+
+                <a href="{{ url_for('history') }}" class="w-full sm:w-auto px-6 py-4 rounded-2xl text-base font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Arsip Riwayat</span>
                 </a>
             </div>
 
-            <!-- 3 Futuristic Live Spec Cards -->
+            <!-- 3 Futuristic Live Spec Cards (Updated with Transfer Learning Info) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto pt-8 border-t border-slate-800/80">
-                <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-left">
+                <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-left transition-all hover:border-cyan-500/40">
                     <div class="flex items-center gap-2 text-cyan-400 text-xs font-mono mb-1">
                         <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                         PRE-PROCESSING
                     </div>
                     <div class="text-xl font-bold text-white">224 x 224 Alignment</div>
-                    <p class="text-xs text-slate-400 mt-1">Pemotongan wajah otomatis & normalisasi spesifik ImageNet</p>
+                    <p class="text-xs text-slate-400 mt-1">Pemotongan wajah otomatis & normalisasi nilai piksel spesifik standar ImageNet</p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-left">
+                <div class="p-5 rounded-2xl bg-slate-900/60 border border-indigo-500/40 backdrop-blur-md text-left transition-all shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:border-indigo-400">
                     <div class="flex items-center gap-2 text-indigo-400 text-xs font-mono mb-1">
-                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                        NEURAL BACKBONE
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                        TRANSFER LEARNING
                     </div>
-                    <div class="text-xl font-bold text-white">ResNet-50 Layers</div>
-                    <p class="text-xs text-slate-400 mt-1">50 lapisan residual dengan koneksi skip untuk akurasi tinggi</p>
+                    <div class="text-xl font-bold text-white">ResNet 50 Model</div>
+                    <p class="text-xs text-slate-300 mt-1">Pre-trained weights ImageNet yang di-fine-tune khusus deteksi manipulasi & deepfake wajah</p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-left">
+                <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-left transition-all hover:border-rose-500/40">
                     <div class="flex items-center gap-2 text-rose-400 text-xs font-mono mb-1">
                         <span class="w-2 h-2 rounded-full bg-rose-400"></span>
                         MULTI-FACTOR
                     </div>
                     <div class="text-xl font-bold text-white">Dual Softmax Output</div>
-                    <p class="text-xs text-slate-400 mt-1">Probabilitas Real vs Deepfake beserta skor metrik anomali</p>
+                    <p class="text-xs text-slate-400 mt-1">Probabilitas keaslian Real vs Deepfake (%) beserta skor anomali forensik wajah</p>
                 </div>
             </div>
             
@@ -85,4 +90,167 @@
         
     </div>
 </div>
+
+<!-- =================================================================== -->
+<!-- BAGIAN INFORMASI MODEL & TRANSFER LEARNING RESNET-50 -->
+<!-- =================================================================== -->
+<section class="relative bg-[#050811] border-t border-slate-800/80 py-16 sm:py-24 overflow-hidden" id="model-info">
+    <!-- Subtle Background Glow -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-indigo-600/10 rounded-full filter blur-[150px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:32px_32px] opacity-20"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-mono mb-4 tracking-wide">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                INFORMASI ARSITEKTUR MODEL
+            </div>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                Penerapan <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400">ResNet 50 Transfer Learning</span>
+            </h2>
+            <p class="text-slate-400 text-sm sm:text-base mt-4 leading-relaxed">
+                Mekanisme Transfer Learning memungkinkan model memanfaatkan bobot fitur visual yang sudah matang dari jutaan citra, lalu di-spesialisasikan untuk mengenali artefak manipulasi wajah sintetis.
+            </p>
+        </div>
+
+        <!-- 4 Grid Cards: Pipeline Transfer Learning -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            
+            <!-- Card 1: Pre-trained Backbone -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h6v6H9z"></path></svg>
+                    </div>
+                    <div class="text-xs font-mono text-cyan-400 mb-1">TAHAP 1 • BASE BACKBONE</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Pre-Trained ImageNet</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        Menggunakan fondasi 50 layer konvolusional ResNet yang telah dilatih pada 1.2M+ citra ImageNet untuk mengekstraksi kontur, tepian, dan tekstur spasial dasar.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-cyan-300">50 Residual Layers</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400">Skip Connections</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Freeze & Fine-Tuning -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl hover:border-indigo-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-5 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    </div>
+                    <div class="text-xs font-mono text-indigo-400 mb-1">TAHAP 2 • STRATEGI TRAINING</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Freeze & Fine-Tuning</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        Layer awal dibekukan (*frozen*) untuk menjaga bobot umum, lalu 30 layer konvolusi teratas dibuka (*unfreeze*) dan di-fine-tune khusus untuk pola anomali citra deepfake.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-indigo-300">Unfreeze Top 30</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400">LR: 1e-5 Adaptive</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Custom Head & Regularization -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl hover:border-purple-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-5 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <div class="text-xs font-mono text-purple-400 mb-1">TAHAP 3 • KLASIFIKASI AKHIR</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Custom Classifier Head</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        Menggantikan fully connected layer asli dengan Global Average Pooling, Dense 512, Dropout 0.5 (anti-overfitting), Dense 128, dan output probabilitas biner.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-purple-300">Dropout 0.5</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400">GlobalAvgPool2D</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Multi-Factor Forensics -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl hover:border-rose-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-5 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </div>
+                    <div class="text-xs font-mono text-rose-400 mb-1">TAHAP 4 • HASIL INSPEKSI</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Multi-Factor Forensik</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        Memvalidasi batas sambungan wajah (*face-swap seam*), pantulan pupil mata, artefak spektrum frekuensi, dan penandaan area manipulasi dengan kotak merah presisi.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-rose-300">Tanda Merah AI</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400">Dual Probability</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Technical Specification Dashboard Summary -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-2xl backdrop-blur-2xl">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-6 border-b border-slate-800/80">
+                <div>
+                    <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                        Spesifikasi Parameter Model Deep Learning
+                    </h4>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Konfigurasi pipeline pelatihan dan inferensi yang digunakan pada sistem deteksi
+                    </p>
+                </div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Model Status: Ready for Inference
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 text-left">
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Arsitektur</div>
+                    <div class="text-sm font-bold text-white mt-1">ResNet-50</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Residual Network</div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Metode</div>
+                    <div class="text-sm font-bold text-cyan-300 mt-1">Transfer Learning</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Fine-Tuned Weights</div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Dimensi Input</div>
+                    <div class="text-sm font-bold text-white mt-1">224 × 224 × 3</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">RGB Normalized</div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Bobot Dasar</div>
+                    <div class="text-sm font-bold text-white mt-1">ImageNet-1K</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">1.28M Pre-trained</div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Optimizer</div>
+                    <div class="text-sm font-bold text-white mt-1">Adam Optimizer</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">LR: 1e-3 & 1e-5</div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/60">
+                    <div class="text-[10px] font-mono text-slate-500 uppercase">Fungsi Loss</div>
+                    <div class="text-sm font-bold text-white mt-1">Binary Crossentropy</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5">Dual Softmax Score</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
 {% endblock %}
