@@ -44,62 +44,28 @@
             
             <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-4 shadow-2xl relative">
                 
-                <!-- Viewer Mode Tabs (GRAD-CAM Dihapus, Tampilan Super Bersih) -->
+                <!-- Viewer Header (Tampilan Foto Bersih Tanpa Tanda Merah) -->
                 <div class="flex items-center justify-between mb-3 px-2 flex-wrap gap-2">
                     <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full {% if record['result'] == 'DEEPFAKE' %}bg-rose-500 animate-ping{% else %}bg-emerald-400 animate-pulse{% endif %}"></span>
-                        VIEWER FOTO
+                        VIEWER CITRA DIGITAL
                     </span>
-                    <div class="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+                    <span class="px-3 py-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono font-semibold flex items-center gap-1.5 {% if record['result'] == 'DEEPFAKE' %}text-rose-400{% else %}text-emerald-400{% endif %}">
                         {% if record['result'] == 'DEEPFAKE' %}
-                        <button onclick="setViewerMode('redmarks')" id="btn-redmarks" class="px-3 py-1.5 rounded-lg font-bold transition-all bg-rose-600 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)]">Tanda Merah AI</button>
-                        <button onclick="setViewerMode('normal')" id="btn-normal" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all">Citra Polos</button>
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        Citra Terindikasi Deepfake
                         {% else %}
-                        <span class="px-3 py-1 text-emerald-400 font-mono text-xs font-semibold flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                            Citra Alami (Tanpa Manipulasi)
-                        </span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        Citra Alami (Autentik)
                         {% endif %}
-                    </div>
+                    </span>
                 </div>
 
-                <!-- Display Box -->
+                <!-- Display Box (Foto Asli Utuh & Bersih) -->
                 <div class="relative rounded-2xl overflow-hidden bg-slate-950 aspect-square flex items-center justify-center group border {% if record['result'] == 'DEEPFAKE' %}border-rose-500/50 shadow-[0_0_25px_rgba(244,63,94,0.15)]{% else %}border-slate-800/80{% endif %}">
                     
                     <!-- Original Image -->
                     <img id="main-img" src="{{ url_for('static', filename='uploads/' + record['filename']) }}" alt="Analisis Forensik" class="w-full h-full object-cover select-none">
-                    
-                    {% if record['result'] == 'DEEPFAKE' %}
-                    <!-- ============================================================== -->
-                    <!-- TANDA MERAH BAGIAN APA YANG DI-EDIT AI (HANYA UNTUK DEEPFAKE) -->
-                    <!-- ============================================================== -->
-                    <div id="overlay-redmarks" class="absolute inset-0 pointer-events-none z-20">
-                        
-                        <!-- 1. Tanda Merah di Area Mata -->
-                        <div class="absolute top-[28%] left-[22%] right-[22%] h-[16%] border-2 border-rose-500 bg-rose-500/15 rounded-lg shadow-[0_0_12px_rgba(244,63,94,0.6)] flex items-start justify-between p-1">
-                            <span class="bg-rose-600 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow">
-                                Tanda Merah: Mata Diedit AI
-                            </span>
-                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
-                        </div>
-
-                        <!-- 2. Tanda Merah di Area Mulut -->
-                        <div class="absolute top-[58%] left-[28%] right-[28%] h-[14%] border-2 border-rose-500 bg-rose-500/15 rounded-lg shadow-[0_0_12px_rgba(244,63,94,0.6)] flex items-end justify-between p-1">
-                            <span class="bg-rose-600 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shadow">
-                                Tanda Merah: Mulut Diedit AI
-                            </span>
-                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
-                        </div>
-
-                        <!-- 3. Tanda Merah di Batas Rahang / Face Swap -->
-                        <div class="absolute bottom-[10%] left-[18%] right-[18%] h-[18%] border-b-2 border-dashed border-rose-500 rounded-b-2xl shadow-[0_4px_12px_rgba(244,63,94,0.7)] flex items-end justify-center pb-1">
-                            <span class="bg-rose-950/90 border border-rose-500 text-rose-300 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full shadow">
-                                Tanda Merah: Batas Rahang Diedit AI
-                            </span>
-                        </div>
-
-                    </div>
-                    {% endif %}
 
                     <!-- Watermark -->
                     <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-800 text-[11px] font-mono text-slate-300">
@@ -274,22 +240,4 @@
 
     </div>
 </div>
-
-<script>
-    function setViewerMode(mode) {
-        const redmarks = document.getElementById('overlay-redmarks');
-        const btnNormal = document.getElementById('btn-normal');
-        const btnRedmarks = document.getElementById('btn-redmarks');
-
-        if (mode === 'normal') {
-            if (redmarks) redmarks.classList.add('hidden');
-            if (btnNormal) btnNormal.className = 'px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white shadow-md transition-all';
-            if (btnRedmarks) btnRedmarks.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
-        } else if (mode === 'redmarks') {
-            if (redmarks) redmarks.classList.remove('hidden');
-            if (btnRedmarks) btnRedmarks.className = 'px-3 py-1.5 rounded-lg font-bold bg-rose-600 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)] transition-all';
-            if (btnNormal) btnNormal.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
-        }
-    }
-</script>
 {% endblock %}

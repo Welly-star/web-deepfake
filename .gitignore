@@ -1,4 +1,4 @@
-﻿__pycache__/
+__pycache__/
 *.py[cod]
 history.db
 static/uploads/*
@@ -6,3 +6,6 @@ static/uploads/*
 .env
 .venv/
 venv/
+dataset/
+*.h5
+*.keras
